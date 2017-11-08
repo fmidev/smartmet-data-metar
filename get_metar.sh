@@ -47,4 +47,4 @@ if [ -s $METARFILE ]; then
     mv -f ${METARFILE}.bz2 $EDITOR
 fi
 
-rmdir $TMP
+rm -f $TMP/*metar*
