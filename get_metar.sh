@@ -5,43 +5,46 @@
 # SmartMet Data Ingestion Module for METAR Observations
 #
 
-TIMESTAMP=`date +%Y%m%d%H%M`
+URL=http://tgftp.nws.noaa.gov/data/observations/metar/cycles
 
 if [ -d /smartmet ]; then
-    IN=/smartmet/data/incoming/metar
-    OUT=/smartmet/data/gts/metar/world/querydata/
-    TMP=/smartmet/tmp/data/metar_${TIMESTAMP}
-    EDITOR=/smartmet/editor/in/
+    BASE=/smartmet
 else
-    IN=$HOME/data/incoming/metar
-    OUT=$HOME/data/gts/metar/world/querydata/
-    TMP=/tmp/data_metar_${TIMESTAMP}
-    EDITOR=$HOME/editor/in/
+    BASE=$HOME/smartmet
 fi
-METARFILE=${TMP}/${TIMESTAMP}_gts_world_metar.sqd
 
-# Log everything
-#if [ ! -z "$ISCRON" ]; then
-#    exec &> $LOGFILE
-#fi
+IN=$BASE/data/incoming/metar
+OUT=$BASE/data/gts/metar/world/querydata
+EDITOR=$BASE/editor/in
+TMP=$BASE/tmp/data/metar
+TIMESTAMP=`date -u +%Y%m%d%H%M`
 
-echo "Temporary directory: $TMP"
-echo "Output directory: $OUT"
-echo "Output file: $(basename $METARFILE)"
+METARFILE=$TMP/${TIMESTAMP}_gts_world_metar.sqd
 
-mkdir -p ${TMP}
+# Use log file if not run interactively
+if [ $TERM = "dumb" ]; then
+    exec &> $LOGFILE
+fi
+mkdir -p $TMP $OUT
+
+echo "URL: $URL"
+echo "IN:  $IN"
+echo "OUT: $OUT"
+echo "TMP: $TMP"
+echo "METAR File: $METARFILE"
 
 for i in {0..23}
 do
-    wget --no-verbose --retry-connrefused --read-timeout=30 --tries=20 -N -P $IN http://tgftp.nws.noaa.gov/data/observations/metar/cycles/$(printf %02d $i)Z.TXT
+    wget --no-verbose --retry-connrefused --read-timeout=30 --tries=20 -N -P $IN $URL/$(printf %02d $i)Z.TXT
 done
 
 # Do METAR stations
 metar2qd -n "$IN/*.TXT" > $METARFILE
-bzip2 -k $METARFILE
 
 if [ -s $METARFILE ]; then
-    mv -f $METARFILE $OUT/
-    mv -f ${METARFILE}.bz2 $EDITOR/
+    lbzip2 -k $METARFILE
+    mv -f $METARFILE $OUT
+    mv -f ${METARFILE}.bz2 $EDITOR
 fi
-rmdir ${TMP}
+
+rmdir $TMP
