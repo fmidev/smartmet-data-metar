@@ -17,6 +17,7 @@ IN=$BASE/data/incoming/metar
 OUT=$BASE/data/gts/metar/world/querydata
 EDITOR=$BASE/editor/in
 TMP=$BASE/tmp/data/metar
+LOGFILE=$BASE/logs/data/metar.log
 TIMESTAMP=`date -u +%Y%m%d%H%M`
 
 METARFILE=$TMP/${TIMESTAMP}_gts_world_metar.sqd
