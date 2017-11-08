@@ -1,7 +1,7 @@
 %define smartmetroot /smartmet
 
 Name:           smartmet-data-metar
-Version:        17.4.20
+Version:        17.11.8
 Release:        1%{?dist}.fmi
 Summary:        SmartMet Data METAR
 Group:          System Environment/Base
@@ -9,10 +9,11 @@ License:        MIT
 URL:            https://github.com/fmidev/smartmet-data-metar
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
-Requires:	smartmet-qdtools
-Requires:	bzip2
-Requires:       wget
 
+%{?el6:Requires: smartmet-qdconversion}
+%{?el7:Requires: smartmet-qdtools}
+Requires:	lbzip2
+Requires:       wget
 
 %description
 SmartMet Data Ingestion Module for METAR observations
@@ -35,7 +36,7 @@ mkdir -p .%{smartmetroot}/logs/data
 mkdir -p .%{smartmetroot}/run/data/metar/bin
 
 cat > %{buildroot}%{smartmetroot}/cnf/cron/cron.d/metar.cron <<EOF
-*/20 * * * * /smartmet/run/data/metar/bin/dometar.sh > /smartmet/logs/data/metar.log 2>&1
+*/20 * * * * /smartmet/run/data/metar/bin/get_metar.sh
 EOF
 
 cat > %{buildroot}%{smartmetroot}/cnf/cron/cron.hourly/clean_data_metar <<EOF
@@ -45,7 +46,7 @@ cleaner -maxfiles 2 '_metar.sqd' %{smartmetroot}/data/gts/metar
 cleaner -maxfiles 2 '_metar.sqd' %{smartmetroot}/editor/in
 EOF
 
-install -m 755 %_topdir/SOURCES/smartmet-data-metar/dometar.sh %{buildroot}%{smartmetroot}/run/data/metar/bin/
+install -m 755 %_topdir/SOURCES/smartmet-data-metar/get_metar.sh %{buildroot}%{smartmetroot}/run/data/metar/bin/
 
 %post
 
@@ -59,11 +60,13 @@ rm -rf $RPM_BUILD_ROOT
 %{smartmetroot}/*
 
 %changelog
-* Thu Apr 20 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.4.20-1.el7.fmi
+* Wed Nov 8 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.11.8-1%{?dist}.fmi
+- Renamed script, improved logging
+* Thu Apr 20 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.4.20-1%{?dist}.fmi
 - Updated script
-* Wed Jan 18 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.1.18-1.el6.fmi
+* Wed Jan 18 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.1.18-1%{?dist}.fmi
 - Updated dependencies
-* Wed Jun 3 2015 Santeri Oksman <santeri.oksman@fmi.fi> 15.6.3-1.el7.fmi
+* Wed Jun 3 2015 Santeri Oksman <santeri.oksman@fmi.fi> 15.6.3-1%{?dist}.fmi
 - RHEL 7 version
-* Fri Aug 8 2014 Mikko Rauhala <mikko.rauhala@fmi.fi> 14.8.8-1.el6.fmi
+* Fri Aug 8 2014 Mikko Rauhala <mikko.rauhala@fmi.fi> 14.8.8-1%{?dist}.fmi
 - Initial build 14.8.8
