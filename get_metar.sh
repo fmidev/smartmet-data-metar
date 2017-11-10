@@ -5,6 +5,8 @@
 # SmartMet Data Ingestion Module for METAR Observations
 #
 
+lockfile -l 3600 -r 0 /tmp/smartmet-data-metar.lock || exit 1
+
 URL=http://tgftp.nws.noaa.gov/data/observations/metar/cycles
 
 if [ -d /smartmet ]; then
@@ -49,3 +51,4 @@ if [ -s $METARFILE ]; then
 fi
 
 rm -f $TMP/*metar*
+rm -f /tmp/smartmet-data-metar.lock

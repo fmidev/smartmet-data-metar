@@ -1,8 +1,8 @@
 %define smartmetroot /smartmet
 
 Name:           smartmet-data-metar
-Version:        17.11.8
-Release:        2%{?dist}.fmi
+Version:        17.11.10
+Release:        1%{?dist}.fmi
 Summary:        SmartMet Data METAR
 Group:          System Environment/Base
 License:        MIT
@@ -60,6 +60,8 @@ rm -rf $RPM_BUILD_ROOT
 %{smartmetroot}/*
 
 %changelog
+* Fri Nov 10 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.11.10-1%{?dist}.fmi
+- Added lock file to prevent parallel runs
 * Wed Nov 8 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.11.8-2%{?dist}.fmi
 - Fixed missing logfile location
 * Wed Nov 8 2017 Mikko Rauhala <mikko.rauhala@fmi.fi> 17.11.8-1%{?dist}.fmi
