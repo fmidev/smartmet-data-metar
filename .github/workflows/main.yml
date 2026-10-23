@@ -118,3 +118,42 @@ jobs:
               --generate-notes \
               --repo "$GITHUB_REPOSITORY"
           fi
+
+  upload-rpms:
+    name: Upload RPM to download.fmi.fi (rhel${{ matrix.tag }})
+    needs: build-rpms
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/master') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: ['8', '9', '10']
+    steps:
+      - name: Download RPMs for rhel${{ matrix.tag }}
+        uses: actions/download-artifact@v8
+        with:
+          name: rpms-rocky${{ matrix.tag }}
+          path: artifacts
+
+      - name: Upload binary RPMs to smartmet-open
+        env:
+          USER: ${{ secrets.RPM_API_USER }}
+          PASS: ${{ secrets.RPM_API_PASS }}
+          HOST: ${{ secrets[format('RPM_API_HOST_RHEL{0}', matrix.tag)] }}
+        run: |
+          if [ -z "$USER" ] || [ -z "$PASS" ] || [ -z "$HOST" ]; then
+            echo "RPM_API_USER, RPM_API_PASS or RPM_API_HOST_RHEL${{ matrix.tag }} secret is not set" >&2
+            exit 1
+          fi
+          HOST=${HOST#https://}
+          HOST=${HOST%/}
+          mapfile -d '' FILES < <(find artifacts/RPMS -type f -name '*.rpm' -print0)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "No RPM files found under artifacts/RPMS" >&2
+            exit 1
+          fi
+          for rpm in "${FILES[@]}"; do
+            echo "Uploading $(basename "$rpm")"
+            curl --silent --show-error --fail -u "$USER:$PASS" -F "file=@$rpm" "https://$HOST/api/upload"
+            echo
+          done
